@@ -6,6 +6,13 @@
   "labels": [ "renovate" ],
   "packageRules": [
     {
+      "description": "Automatically update minor and patch versions of used base images",
+      "addLabels": [ "renovate/dockerfile", "renovate/automerge" ],
+      "automerge": true,
+      "matchManagers": "dockerfile",
+      "matchUpdateTypes": [ "minor", "patch"]
+    },
+    {
       "description": "Automatically update minor and patch versions of used drone-ci images",
       "addLabels": [ "renovate/droneci", "renovate/automerge" ],
       "automerge": true,
