@@ -165,6 +165,14 @@ func (p *Plugin) sendMail(recipient string, r io.Reader) error {
 		return fmt.Errorf("failed to copy input from passed reader to smtp writer: %w", err)
 	}
 
+	// close smtpClient before defer to avoid returning an error of
+	// smtpClient.Quit() like the following example:
+	// Error: failed to execute mail plugin: failed to send mail: failed to send quit command: 250 2.0.0 Ok: queued as C7F009B4ED
+	err = wc.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close smtp client connection: %w", err)
+	}
+
 	err = smtpClient.Quit()
 	if err != nil {
 		return fmt.Errorf("failed to send quit command: %w", err)
