@@ -3,6 +3,7 @@
   "assignees": [ "volker.raschek" ],
   "automergeStrategy": "merge-commit",
   "automergeType": "pr",
+  "dependencyDashboard": true,
   "labels": [ "renovate" ],
   "packageRules": [
     {
