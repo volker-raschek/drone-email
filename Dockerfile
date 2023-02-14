@@ -1,4 +1,4 @@
-FROM docker.io/library/golang:1.20.0-alpine3.16 AS build
+FROM docker.io/library/golang:1.20.1-alpine3.16 AS build
 
 ARG GONOPROXY
 ARG GONOSUMDB
