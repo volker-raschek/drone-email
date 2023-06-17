@@ -3,14 +3,20 @@ kind: pipeline
 type: kubernetes
 name: linter
 
+clone:
+  disable: true
+
 platform:
   os: linux
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: markdown lint
   commands:
   - markdownlint *.md
-  image: docker.io/volkerraschek/markdownlint:0.34.0
+  image: git.cryptic.systems/volker.raschek/markdownlint:0.34.0
   resources:
     limits:
       cpu: 150
@@ -28,7 +34,7 @@ steps:
       from_secret: smtp_username
     SMTP_PASSWORD:
       from_secret: smtp_password
-  image: docker.io/volkerraschek/drone-email:0.1.1
+  image: git.cryptic.systems/volker.raschek/drone-email:0.1.1
   resources:
     limits:
       cpu: 150
@@ -48,6 +54,9 @@ kind: pipeline
 type: docker
 name: dry-run-amd64
 
+clone:
+  disable: true
+
 depends_on:
 - linter
 
@@ -56,8 +65,11 @@ platform:
   arch: amd64
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -65,27 +77,29 @@ steps:
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     tags: latest-amd64
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
+      from_secret: git_cryptic_systems_container_registry_password
 
-- name: notify
-  image: docker.io/drillster/drone-email:latest
+- name: email-notification
   environment:
-    PLUGIN_HOST:
+    SMTP_FROM_ADDRESS:
+      from_secret: smtp_from_address
+    SMTP_FROM_NAME:
+      from_secret: smtp_from_name
+    SMTP_HOST:
       from_secret: smtp_host
-    PLUGIN_USERNAME:
+    SMTP_USERNAME:
       from_secret: smtp_username
-    PLUGIN_PASSWORD:
+    SMTP_PASSWORD:
       from_secret: smtp_password
-    PLUGIN_FROM:
-      from_secret: smtp_mail_address
+  image: docker.io/volkerraschek/drone-email:0.1.1
   when:
     status:
     - changed
@@ -99,18 +113,16 @@ trigger:
   - pull_request
   - push
   repo:
-  - volker.raschek/docker-email
-
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
+  - volker.raschek/drone-email
 
 ---
 kind: pipeline
 type: docker
 name: dry-run-arm-v7
 
+clone:
+  disable: true
+
 depends_on:
 - linter
 
@@ -119,8 +131,11 @@ platform:
   arch: arm
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -128,27 +143,29 @@ steps:
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     tags: latest-arm-v7
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
 
-- name: notify
-  image: docker.io/drillster/drone-email:latest
+- name: email-notification
   environment:
-    PLUGIN_HOST:
+    SMTP_FROM_ADDRESS:
+      from_secret: smtp_from_address
+    SMTP_FROM_NAME:
+      from_secret: smtp_from_name
+    SMTP_HOST:
       from_secret: smtp_host
-    PLUGIN_USERNAME:
+    SMTP_USERNAME:
       from_secret: smtp_username
-    PLUGIN_PASSWORD:
+    SMTP_PASSWORD:
       from_secret: smtp_password
-    PLUGIN_FROM:
-      from_secret: smtp_mail_address
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
+  image: docker.io/volkerraschek/drone-email:0.1.1
   when:
     status:
     - changed
@@ -162,17 +179,15 @@ trigger:
   - pull_request
   - push
   repo:
-  - volker.raschek/docker-email
-
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
+  - volker.raschek/drone-email
 
 ---
 kind: pipeline
 type: docker
 name: dry-run-arm64-v8
+
+clone:
+  disable: true
 
 depends_on:
 - linter
@@ -182,8 +197,11 @@ platform:
   arch: arm64
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -191,27 +209,29 @@ steps:
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     tags: latest-arm64-v8
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
 
-- name: notify
-  image: docker.io/drillster/drone-email:latest
+- name: email-notification
   environment:
-    PLUGIN_HOST:
+    SMTP_FROM_ADDRESS:
+      from_secret: smtp_from_address
+    SMTP_FROM_NAME:
+      from_secret: smtp_from_name
+    SMTP_HOST:
       from_secret: smtp_host
-    PLUGIN_USERNAME:
+    SMTP_USERNAME:
       from_secret: smtp_username
-    PLUGIN_PASSWORD:
+    SMTP_PASSWORD:
       from_secret: smtp_password
-    PLUGIN_FROM:
-      from_secret: smtp_mail_address
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
+  image: docker.io/volkerraschek/drone-email:0.1.1
   when:
     status:
     - changed
@@ -225,17 +245,15 @@ trigger:
   - pull_request
   - push
   repo:
-  - volker.raschek/docker-email
-
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
+  - volker.raschek/drone-email
 
 ---
 kind: pipeline
 type: docker
 name: latest-amd64
+
+clone:
+  disable: true
 
 depends_on:
 - linter
@@ -245,23 +263,26 @@ platform:
   arch: amd64
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     tags: latest-amd64
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
+      from_secret: git_cryptic_systems_container_registry_password
 
 - name: email-notification
   environment:
@@ -289,39 +310,40 @@ trigger:
   - push
   repo:
   - volker.raschek/drone-email
-
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
 
 ---
 kind: pipeline
 type: docker
 name: latest-arm-v7
 
-depends_on:
-- linter
+clone:
+  disable: true
 
 platform:
   os: linux
   arch: arm
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     tags: latest-arm-v7
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
 
 - name: email-notification
   environment:
@@ -341,6 +363,9 @@ steps:
     - changed
     - failure
 
+depends_on:
+- linter
+
 trigger:
   branch:
   - master
@@ -350,15 +375,13 @@ trigger:
   repo:
   - volker.raschek/drone-email
 
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
-
 ---
 kind: pipeline
 type: docker
 name: latest-arm64-v8
+
+clone:
+  disable: true
 
 depends_on:
 - linter
@@ -368,20 +391,26 @@ platform:
   arch: arm64
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     tags: latest-arm64-v8
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
 
 - name: email-notification
   environment:
@@ -410,15 +439,13 @@ trigger:
   repo:
   - volker.raschek/drone-email
 
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
-
 ---
 kind: pipeline
 type: kubernetes
 name: latest-manifest
+
+clone:
+  disable: true
 
 depends_on:
 - latest-amd64
@@ -426,6 +453,9 @@ depends_on:
 - latest-arm64-v8
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build-manifest
   image: docker.io/plugins/manifest:latest
   settings:
@@ -433,9 +463,69 @@ steps:
     ignore_missing: true
     spec: manifest.tmpl
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
+      from_secret: git_cryptic_systems_container_registry_password
+
+- name: email-notification
+  environment:
+    SMTP_FROM_ADDRESS:
+      from_secret: smtp_from_address
+    SMTP_FROM_NAME:
+      from_secret: smtp_from_name
+    SMTP_HOST:
+      from_secret: smtp_host
+    SMTP_USERNAME:
+      from_secret: smtp_username
+    SMTP_PASSWORD:
+      from_secret: smtp_password
+  image: docker.io/volkerraschek/drone-email:0.1.1
+  resources:
+    limits:
+      cpu: 150
+      memory: 150M
+  when:
+    status:
+    - changed
+    - failure
+
+trigger:
+  branch:
+  - master
+  event:
+  - cron
+  - push
+  repo:
+  - volker.raschek/drone-email
+
+---
+kind: pipeline
+type: kubernetes
+name: latest-sync
+
+clone:
+  disable: true
+
+depends_on:
+- latest-manifest
+
+steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
+- name: latest-sync
+  commands:
+  - skopeo sync --all --src=docker --src-creds=$SRC_CRED_USERNAME:$SRC_CRED_PASSWORD --dest=docker --dest-creds=$DEST_CRED_USERNAME:$DEST_CRED_PASSWORD git.cryptic.systems/volker.raschek/drone-email docker.io/volkerraschek
+  environment:
+    SRC_CRED_USERNAME:
+      from_secret: git_cryptic_systems_container_registry_user
+    SRC_CRED_PASSWORD:
+      from_secret: git_cryptic_systems_container_registry_password
+    DEST_CRED_USERNAME:
+      from_secret: container_image_registry_user
+    DEST_CRED_PASSWORD:
       from_secret: container_image_registry_password
+  image: quay.io/skopeo/stable:v1.12.0
 
 - name: email-notification
   environment:
@@ -473,30 +563,36 @@ kind: pipeline
 type: docker
 name: tagged-amd64
 
+clone:
+  disable: true
+
 platform:
   os: linux
   arch: amd64
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
-    auto_tag_suffix: amd64
     auto_tag: true
+    auto_tag_suffix: amd64
     dockerfile: Dockerfile
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
     build_args:
     - VERSION=${DRONE_TAG}
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
 
 - name: email-notification
   environment:
@@ -521,41 +617,42 @@ trigger:
   - tag
   repo:
   - volker.raschek/drone-email
-
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
 
 ---
 kind: pipeline
 type: docker
 name: tagged-arm-v7
 
+clone:
+  disable: true
+
 platform:
   os: linux
   arch: arm
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
-    auto_tag_suffix: arm-v7
     auto_tag: true
+    auto_tag_suffix: arm-v7
     dockerfile: Dockerfile
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
     build_args:
     - VERSION=${DRONE_TAG}
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
 
 - name: email-notification
   environment:
@@ -580,41 +677,42 @@ trigger:
   - tag
   repo:
   - volker.raschek/drone-email
-
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
 
 ---
 kind: pipeline
 type: docker
 name: tagged-arm64-v8
 
+clone:
+  disable: true
+
 platform:
   os: linux
   arch: arm64
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build
-  image: docker.io/plugins/docker:latest
+  image: docker.io/plugins/docker:20.10.9
   settings:
-    auto_tag_suffix: arm64-v8
     auto_tag: true
+    auto_tag_suffix: arm64-v8
     dockerfile: Dockerfile
     force_tag: true
     no_cache: true
     purge: true
-    repo: volkerraschek/drone-email
+    mirror:
+      from_secret: docker_io_mirror
+    registry: git.cryptic.systems
+    repo: git.cryptic.systems/volker.raschek/drone-email
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
-      from_secret: container_image_registry_password
+      from_secret: git_cryptic_systems_container_registry_password
     build_args:
     - VERSION=${DRONE_TAG}
-  volumes:
-  - name: docker_socket
-    path: /var/run/docker.sock
 
 - name: email-notification
   environment:
@@ -629,7 +727,6 @@ steps:
     SMTP_PASSWORD:
       from_secret: smtp_password
   image: docker.io/volkerraschek/drone-email:0.1.1
-
   when:
     status:
     - changed
@@ -641,15 +738,13 @@ trigger:
   repo:
   - volker.raschek/drone-email
 
-volumes:
-- name: docker_socket
-  host:
-    path: /var/run/docker.sock
-
 ---
 kind: pipeline
 type: kubernetes
 name: tagged-manifest
+
+clone:
+  disable: true
 
 depends_on:
 - tagged-amd64
@@ -657,6 +752,9 @@ depends_on:
 - tagged-arm64-v8
 
 steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
 - name: build-manifest
   image: docker.io/plugins/manifest:latest
   settings:
@@ -664,9 +762,66 @@ steps:
     ignore_missing: true
     spec: manifest.tmpl
     username:
-      from_secret: container_image_registry_user
+      from_secret: git_cryptic_systems_container_registry_user
     password:
+      from_secret: git_cryptic_systems_container_registry_password
+
+- name: email-notification
+  environment:
+    SMTP_FROM_ADDRESS:
+      from_secret: smtp_from_address
+    SMTP_FROM_NAME:
+      from_secret: smtp_from_name
+    SMTP_HOST:
+      from_secret: smtp_host
+    SMTP_USERNAME:
+      from_secret: smtp_username
+    SMTP_PASSWORD:
+      from_secret: smtp_password
+  image: docker.io/volkerraschek/drone-email:0.1.1
+  resources:
+    limits:
+      cpu: 150
+      memory: 150M
+  when:
+    status:
+    - changed
+    - failure
+
+trigger:
+  event:
+  - tag
+  repo:
+  - volker.raschek/drone-email
+
+---
+kind: pipeline
+type: kubernetes
+name: tagged-sync
+
+clone:
+  disable: true
+
+depends_on:
+- tagged-manifest
+
+steps:
+- name: clone
+  image: git.cryptic.systems/volker.raschek/git:1.2.1
+
+- name: tagged-sync
+  commands:
+  - skopeo sync --all --src=docker --src-creds=$SRC_CRED_USERNAME:$SRC_CRED_PASSWORD --dest=docker --dest-creds=$DEST_CRED_USERNAME:$DEST_CRED_PASSWORD git.cryptic.systems/volker.raschek/drone-email docker.io/volkerraschek
+  environment:
+    SRC_CRED_USERNAME:
+      from_secret: git_cryptic_systems_container_registry_user
+    SRC_CRED_PASSWORD:
+      from_secret: git_cryptic_systems_container_registry_password
+    DEST_CRED_USERNAME:
+      from_secret: container_image_registry_user
+    DEST_CRED_PASSWORD:
       from_secret: container_image_registry_password
+  image: quay.io/skopeo/stable:v1.12.0
 
 - name: email-notification
   environment:
