@@ -69,7 +69,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -135,7 +135,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -201,7 +201,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -267,7 +267,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -328,7 +328,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -395,7 +395,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: false
     dockerfile: Dockerfile
@@ -575,7 +575,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: true
     auto_tag_suffix: amd64
@@ -635,7 +635,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: true
     auto_tag_suffix: arm-v7
@@ -695,7 +695,7 @@ steps:
   image: git.cryptic.systems/volker.raschek/git:1.2.1
 
 - name: build
-  image: docker.io/plugins/docker:20.14.4
+  image: docker.io/plugins/docker:20.10.9
   settings:
     auto_tag: true
     auto_tag_suffix: arm64-v8
