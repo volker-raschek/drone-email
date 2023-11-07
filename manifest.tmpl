@@ -13,12 +13,6 @@ manifests:
       architecture: amd64
       os: linux
   -
-    image: git.cryptic.systems/volker.raschek/drone-email:{{#if build.tag}}{{trimPrefix "v" build.tag}}{{else}}latest{{/if}}-arm-v7
-    platform:
-      architecture: arm
-      os: linux
-      variant: v7
-  -
     image: git.cryptic.systems/volker.raschek/drone-email:{{#if build.tag}}{{trimPrefix "v" build.tag}}{{else}}latest{{/if}}-arm64-v8
     platform:
       architecture: arm64

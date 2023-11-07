@@ -118,72 +118,6 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: dry-run-arm-v7
-
-clone:
-  disable: true
-
-depends_on:
-- linter
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: clone
-  image: git.cryptic.systems/volker.raschek/git:1.3.1
-
-- name: build
-  image: docker.io/plugins/docker:20.10.9
-  settings:
-    auto_tag: false
-    dockerfile: Dockerfile
-    dry_run: true
-    force_tag: true
-    no_cache: true
-    purge: true
-    mirror:
-      from_secret: docker_io_mirror
-    registry: git.cryptic.systems
-    repo: git.cryptic.systems/volker.raschek/drone-email
-    tags: latest-arm-v7
-    username:
-      from_secret: git_cryptic_systems_container_registry_user
-    password:
-      from_secret: git_cryptic_systems_container_registry_password
-
-- name: email-notification
-  environment:
-    SMTP_FROM_ADDRESS:
-      from_secret: smtp_from_address
-    SMTP_FROM_NAME:
-      from_secret: smtp_from_name
-    SMTP_HOST:
-      from_secret: smtp_host
-    SMTP_USERNAME:
-      from_secret: smtp_username
-    SMTP_PASSWORD:
-      from_secret: smtp_password
-  image: docker.io/volkerraschek/drone-email:0.1.5
-  when:
-    status:
-    - changed
-    - failure
-
-trigger:
-  branch:
-    exclude:
-    - master
-  event:
-  - pull_request
-  - push
-  repo:
-  - volker.raschek/drone-email
-
----
-kind: pipeline
-type: docker
 name: dry-run-arm64-v8
 
 clone:
@@ -314,70 +248,6 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: latest-arm-v7
-
-clone:
-  disable: true
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: clone
-  image: git.cryptic.systems/volker.raschek/git:1.3.1
-
-- name: build
-  image: docker.io/plugins/docker:20.10.9
-  settings:
-    auto_tag: false
-    dockerfile: Dockerfile
-    force_tag: true
-    no_cache: true
-    purge: true
-    mirror:
-      from_secret: docker_io_mirror
-    registry: git.cryptic.systems
-    repo: git.cryptic.systems/volker.raschek/drone-email
-    tags: latest-arm-v7
-    username:
-      from_secret: git_cryptic_systems_container_registry_user
-    password:
-      from_secret: git_cryptic_systems_container_registry_password
-
-- name: email-notification
-  environment:
-    SMTP_FROM_ADDRESS:
-      from_secret: smtp_from_address
-    SMTP_FROM_NAME:
-      from_secret: smtp_from_name
-    SMTP_HOST:
-      from_secret: smtp_host
-    SMTP_USERNAME:
-      from_secret: smtp_username
-    SMTP_PASSWORD:
-      from_secret: smtp_password
-  image: docker.io/volkerraschek/drone-email:0.1.5
-  when:
-    status:
-    - changed
-    - failure
-
-depends_on:
-- linter
-
-trigger:
-  branch:
-  - master
-  event:
-  - cron
-  - push
-  repo:
-  - volker.raschek/drone-email
-
----
-kind: pipeline
-type: docker
 name: latest-arm64-v8
 
 clone:
@@ -449,7 +319,6 @@ clone:
 
 depends_on:
 - latest-amd64
-- latest-arm-v7
 - latest-arm64-v8
 
 steps:
@@ -621,66 +490,6 @@ trigger:
 ---
 kind: pipeline
 type: docker
-name: tagged-arm-v7
-
-clone:
-  disable: true
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: clone
-  image: git.cryptic.systems/volker.raschek/git:1.3.1
-
-- name: build
-  image: docker.io/plugins/docker:20.10.9
-  settings:
-    auto_tag: true
-    auto_tag_suffix: arm-v7
-    dockerfile: Dockerfile
-    force_tag: true
-    no_cache: true
-    purge: true
-    mirror:
-      from_secret: docker_io_mirror
-    registry: git.cryptic.systems
-    repo: git.cryptic.systems/volker.raschek/drone-email
-    username:
-      from_secret: git_cryptic_systems_container_registry_user
-    password:
-      from_secret: git_cryptic_systems_container_registry_password
-    build_args:
-    - VERSION=${DRONE_TAG}
-
-- name: email-notification
-  environment:
-    SMTP_FROM_ADDRESS:
-      from_secret: smtp_from_address
-    SMTP_FROM_NAME:
-      from_secret: smtp_from_name
-    SMTP_HOST:
-      from_secret: smtp_host
-    SMTP_USERNAME:
-      from_secret: smtp_username
-    SMTP_PASSWORD:
-      from_secret: smtp_password
-  image: docker.io/volkerraschek/drone-email:0.1.5
-  when:
-    status:
-    - changed
-    - failure
-
-trigger:
-  event:
-  - tag
-  repo:
-  - volker.raschek/drone-email
-
----
-kind: pipeline
-type: docker
 name: tagged-arm64-v8
 
 clone:
@@ -748,7 +557,6 @@ clone:
 
 depends_on:
 - tagged-amd64
-- tagged-arm-v7
 - tagged-arm64-v8
 
 steps:
