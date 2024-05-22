@@ -17,7 +17,7 @@ RUN set -ex && \
 
 ###############################################################################
 
-FROM docker.io/library/alpine:3.19
+FROM docker.io/library/alpine:3.20
 
 RUN apk add --no-cache bash bash-completion ca-certificates tzdata
 
