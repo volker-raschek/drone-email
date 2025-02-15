@@ -3,8 +3,8 @@ module git.cryptic.systems/volker.raschek/drone-email-docker
 go 1.18
 
 require (
-	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/cobra v1.9.0
+	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.19.0
 )
 
