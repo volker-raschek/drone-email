@@ -11,19 +11,19 @@ PREFIX?=/usr/local
 # container runtime. This is needed to start and run a container image.
 CONTAINER_RUNTIME?=$(shell which podman)
 
-# DCMERGE_IMAGE_REGISTRY_NAME
+# DRONE_EMAIL_IMAGE_REGISTRY_NAME
 # Defines the name of the new container to be built using several variables.
-DCMERGE_IMAGE_REGISTRY_NAME:=git.cryptic.systems
-DCMERGE_IMAGE_REGISTRY_USER:=volker.raschek
+DRONE_EMAIL_IMAGE_REGISTRY_NAME:=git.cryptic.systems
+DRONE_EMAIL_IMAGE_REGISTRY_USER:=volker.raschek
 
-DCMERGE_IMAGE_NAMESPACE?=${DCMERGE_IMAGE_REGISTRY_USER}
-DCMERGE_IMAGE_NAME:=${EXECUTABLE}
-DCMERGE_IMAGE_VERSION?=latest
-DCMERGE_IMAGE_FULLY_QUALIFIED=${DCMERGE_IMAGE_REGISTRY_NAME}/${DCMERGE_IMAGE_NAMESPACE}/${DCMERGE_IMAGE_NAME}:${DCMERGE_IMAGE_VERSION}
+DRONE_EMAIL_IMAGE_NAMESPACE?=${DRONE_EMAIL_IMAGE_REGISTRY_USER}
+DRONE_EMAIL_IMAGE_NAME:=${EXECUTABLE}
+DRONE_EMAIL_IMAGE_VERSION?=latest
+DRONE_EMAIL_IMAGE_FULLY_QUALIFIED=${DRONE_EMAIL_IMAGE_REGISTRY_NAME}/${DRONE_EMAIL_IMAGE_NAMESPACE}/${DRONE_EMAIL_IMAGE_NAME}:${DRONE_EMAIL_IMAGE_VERSION}
 
 # BIN
 # ==============================================================================
-dcmerge:
+drone-email:
 	CGO_ENABLED=0 \
 	GOPROXY=$(shell go env GOPROXY) \
 		go build -ldflags "-X 'main.version=${VERSION}'" -o ${@} main.go
@@ -32,7 +32,7 @@ dcmerge:
 # ==============================================================================
 PHONY+=clean
 clean:
-	rm --force --recursive dcmerge
+	rm --force --recursive drone-email
 
 # TESTS
 # ==============================================================================
@@ -63,9 +63,9 @@ golangci-lint:
 # INSTALL
 # ==============================================================================
 PHONY+=uninstall
-install: dcmerge
+install: drone-email
 	install --directory ${DESTDIR}/etc/bash_completion.d
-	./dcmerge completion bash > ${DESTDIR}/etc/bash_completion.d/${EXECUTABLE}
+	./drone-email completion bash > ${DESTDIR}/etc/bash_completion.d/${EXECUTABLE}
 
 	install --directory ${DESTDIR}${PREFIX}/bin
 	install --mode 0755 ${EXECUTABLE} ${DESTDIR}${PREFIX}/bin/${EXECUTABLE}
@@ -91,22 +91,22 @@ container-image/build:
 		--file Dockerfile \
 		--no-cache \
 		--pull \
-		--tag ${DCMERGE_IMAGE_FULLY_QUALIFIED} \
-		--tag ${DCMERGE_IMAGE_UNQUALIFIED} \
+		--tag ${DRONE_EMAIL_IMAGE_FULLY_QUALIFIED} \
+		--tag ${DRONE_EMAIL_IMAGE_UNQUALIFIED} \
 		.
 
 # DELETE CONTAINER IMAGE
 # ==============================================================================
 PHONY:=container-image/delete
 container-image/delete:
-	- ${CONTAINER_RUNTIME} image rm ${DCMERGE_IMAGE_FULLY_QUALIFIED}
+	- ${CONTAINER_RUNTIME} image rm ${DRONE_EMAIL_IMAGE_FULLY_QUALIFIED}
 
 # PUSH CONTAINER IMAGE
 # ==============================================================================
 PHONY+=container-image/push
 container-image/push:
-	echo ${DCMERGE_IMAGE_REGISTRY_PASSWORD} | ${CONTAINER_RUNTIME} login ${DCMERGE_IMAGE_REGISTRY_NAME} --username ${DCMERGE_IMAGE_REGISTRY_USER} --password-stdin
-	${CONTAINER_RUNTIME} push ${DCMERGE_IMAGE_FULLY_QUALIFIED}
+	echo ${DRONE_EMAIL_IMAGE_REGISTRY_PASSWORD} | ${CONTAINER_RUNTIME} login ${DRONE_EMAIL_IMAGE_REGISTRY_NAME} --username ${DRONE_EMAIL_IMAGE_REGISTRY_USER} --password-stdin
+	${CONTAINER_RUNTIME} push ${DRONE_EMAIL_IMAGE_FULLY_QUALIFIED}
 
 # PHONY
 # ==============================================================================

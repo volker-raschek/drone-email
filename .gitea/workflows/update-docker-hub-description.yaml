@@ -15,5 +15,5 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_IO_USERNAME }}
         password: ${{ secrets.DOCKER_IO_PASSWORD }}
-        repository: volkerraschek/dcmerge
+        repository: volkerraschek/drone-email
         readme-filepath: README.md
