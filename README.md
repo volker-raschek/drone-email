@@ -1,9 +1,7 @@
 # drone-email
 
-[![Build Status](https://drone.cryptic.systems/api/badges/volker.raschek/drone-email/status.svg)](https://drone.cryptic.systems/volker.raschek/drone-email)
-
-A Drone CI/CD plugin to send build status notifications via email. The plugin is
-currently available for the following architectures:
+A Drone CI/CD plugin to send build status notifications via email. The plugin is currently available for the following
+architectures:
 
 - x86_64  / amd64
 - aarch64 / arm64
@@ -11,8 +9,7 @@ currently available for the following architectures:
 
 ## Compile or install the binary locally
 
-Checkout the source code of the project and use `make` to compile or install the
-binary locally.
+Checkout the source code of the project and use `make` to compile or install the binary locally.
 
 ```bash
 make all          # compile all targets, including shell completions
@@ -22,8 +19,8 @@ make install      # install the binary with completions locally
 
 ## Usage
 
-All params can be defined via cli flags. A list of all provided cli-flags will
-be written to `stdout` via `drone-email --help`.
+All params can be defined via cli flags. A list of all provided cli-flags will be written to `stdout` via `drone-email
+--help`.
 
 Alternatively can be the flags defined via environment variables or a config file.
 
@@ -111,14 +108,11 @@ smtp-username: noreply@example.local
 
 ### Multiple success emails despite failed ci step
 
-The [drone-runner-kube](https://github.com/drone-runners/drone-runner-kube) does
-not define the environment variable `DRONE_PREV_BUILD_STATUS` like the
-[drone-runner-docker](https://github.com/drone-runners/drone-runner-docker).
-This make it impossible to use the correct email template based on the build
-state of the previous step.
+The [drone-runner-kube](https://github.com/drone-runners/drone-runner-kube) does not define the environment variable
+`DRONE_PREV_BUILD_STATUS` like the [drone-runner-docker](https://github.com/drone-runners/drone-runner-docker). This
+make it impossible to use the correct email template based on the build state of the previous step.
 
-Furthermore, the environment variable `DRONE_BUILD_STATUS` is always defined as
-`success`, even if the build has failed.
+Furthermore, the environment variable `DRONE_BUILD_STATUS` is always defined as `success`, even if the build has failed.
 
 Related issues:
 

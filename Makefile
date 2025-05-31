@@ -1,89 +1,58 @@
-VERSION?=$(shell git describe --abbrev=0)+$(shell date +'%Y%m%d_%H%M%S')
+EXECUTABLE=drone-email
+VERSION?=$(shell git describe --abbrev=0)+hash.$(shell git rev-parse --short HEAD)
 
-EXECUTABLE:=drone-email
-
+# Destination directory and prefix to place the compiled binaries, documentaions
+# and other files.
 DESTDIR?=
 PREFIX?=/usr/local
 
 # CONTAINER_RUNTIME
+# The CONTAINER_RUNTIME variable will be used to specified the path to a
+# container runtime. This is needed to start and run a container image.
 CONTAINER_RUNTIME?=$(shell which podman)
 
-# DRONEEMAIL_IMAGE
-DRONEEMAIL_IMAGE_REGISTRY_HOST?=git.cryptic.systems
-DRONEEMAIL_IMAGE_REPOSITORY=volker.raschek/${EXECUTABLE}
-DRONEEMAIL_IMAGE_VERSION?=latest
-DRONEEMAIL_IMAGE_FULLY_QUALIFIED=${DRONEEMAIL_IMAGE_REGISTRY_HOST}/${DRONEEMAIL_IMAGE_REPOSITORY}:${DRONEEMAIL_IMAGE_VERSION}
-DRONEEMAIL_IMAGE_UNQUALIFIED=${DRONEEMAIL_IMAGE_REPOSITORY}:${DRONEEMAIL_IMAGE_VERSION}
+# DCMERGE_IMAGE_REGISTRY_NAME
+# Defines the name of the new container to be built using several variables.
+DCMERGE_IMAGE_REGISTRY_NAME:=git.cryptic.systems
+DCMERGE_IMAGE_REGISTRY_USER:=volker.raschek
 
-# BINARIES
+DCMERGE_IMAGE_NAMESPACE?=${DCMERGE_IMAGE_REGISTRY_USER}
+DCMERGE_IMAGE_NAME:=${EXECUTABLE}
+DCMERGE_IMAGE_VERSION?=latest
+DCMERGE_IMAGE_FULLY_QUALIFIED=${DCMERGE_IMAGE_REGISTRY_NAME}/${DCMERGE_IMAGE_NAMESPACE}/${DCMERGE_IMAGE_NAME}:${DCMERGE_IMAGE_VERSION}
+
+# BIN
 # ==============================================================================
-EXECUTABLES := ${EXECUTABLE}
-EXECUTABLES += $(addsuffix .sh, ${EXECUTABLE})
-EXECUTABLES += $(addsuffix .fish, ${EXECUTABLE})
-EXECUTABLES += $(addsuffix .zsh, ${EXECUTABLE})
-
-all: ${EXECUTABLES}
-
-${EXECUTABLE}:
+dcmerge:
 	CGO_ENABLED=0 \
-	GONOPROXY=$(shell go env GONOPROXY) \
-	GONOSUMDB=$(shell go env GONOSUMDB) \
-	GOPRIVATE=$(shell go env GOPRIVATE) \
 	GOPROXY=$(shell go env GOPROXY) \
-		go build -ldflags "-X main.version=${VERSION:v%=%}" -o ${@}
-
-${EXECUTABLE}.sh: ${EXECUTABLE}
-	./${EXECUTABLE} completion bash > ${EXECUTABLE}.sh
-
-${EXECUTABLE}.fish: ${EXECUTABLE}
-	./${EXECUTABLE} completion fish > ${EXECUTABLE}.fish
-
-${EXECUTABLE}.zsh: ${EXECUTABLE}
-	./${EXECUTABLE} completion zsh > ${EXECUTABLE}.zsh
-
-# UN/INSTALL
-# ==============================================================================
-PHONY+=install
-install: all
-	install --directory ${DESTDIR}${PREFIX}/bin
-	install --mode 755 ${EXECUTABLE} ${DESTDIR}${PREFIX}/bin/${EXECUTABLE}
-
-	install --directory ${DESTDIR}/etc/bash_completion.d
-	install --mode 644 ${EXECUTABLE}.sh ${DESTDIR}/etc/bash_completion.d/${EXECUTABLE}.sh
-
-	install --directory ${DESTDIR}${PREFIX}/share/fish/vendor_completions.d
-	install --mode 644 ${EXECUTABLE}.fish ${DESTDIR}${PREFIX}/share/fish/vendor_completions.d/${EXECUTABLE}.fish
-
-	install --directory ${DESTDIR}${PREFIX}/share/zsh/site-functions
-	install --mode 644 ${EXECUTABLE}.zsh ${DESTDIR}${PREFIX}/share/zsh/site-functions/_${EXECUTABLE}.zsh
-
-	install --directory ${DESTDIR}${PREFIX}/licenses/${EXECUTABLE}
-	install --mode 644 LICENSE ${DESTDIR}${PREFIX}/licenses/${EXECUTABLE}/LICENSE
-
-PHONY+=uninstall
-uninstall:
-	-rm --recursive --force \
-		${DESTDIR}${PREFIX}/bin/${EXECUTABLE} \
-		${DESTDIR}/etc/bash_completion.d/${EXECUTABLE}.sh \
-		${DESTDIR}${PREFIX}/share/fish/vendor_completions.d/${EXECUTABLE}.fish \
-		${DESTDIR}${PREFIX}/share/zsh/site-functions/_${EXECUTABLE}.zsh \
-		${DESTDIR}${PREFIX}/licenses/${EXECUTABLE}/LICENSE
+		go build -ldflags "-X 'main.version=${VERSION}'" -o ${@} main.go
 
 # CLEAN
 # ==============================================================================
 PHONY+=clean
 clean:
-	-rm -rf ${EXECUTABLE}*
+	rm --force --recursive dcmerge
 
-# TEST
+# TESTS
 # ==============================================================================
 PHONY+=test/unit
 test/unit:
-	go test -v -race -coverprofile=coverage.txt -covermode=atomic -timeout 600s -count=1 ./...
+	CGO_ENABLED=0 \
+	GOPROXY=$(shell go env GOPROXY) \
+		go test -v -p 1 -coverprofile=coverage.txt -covermode=count -timeout 1200s ./pkg/...
+
+PHONY+=test/integration
+test/integration:
+	CGO_ENABLED=0 \
+	GOPROXY=$(shell go env GOPROXY) \
+		go test -v -p 1 -count=1 -timeout 1200s ./it/...
 
 PHONY+=test/coverage
 test/coverage: test/unit
-	go tool cover -html=coverage.txt
+	CGO_ENABLED=0 \
+	GOPROXY=$(shell go env GOPROXY) \
+		go tool cover -html=coverage.txt
 
 # GOLANGCI-LINT
 # ==============================================================================
@@ -91,25 +60,53 @@ PHONY+=golangci-lint
 golangci-lint:
 	golangci-lint run --concurrency=$(shell nproc)
 
-# CONTAINER-IMAGE
+# INSTALL
+# ==============================================================================
+PHONY+=uninstall
+install: dcmerge
+	install --directory ${DESTDIR}/etc/bash_completion.d
+	./dcmerge completion bash > ${DESTDIR}/etc/bash_completion.d/${EXECUTABLE}
+
+	install --directory ${DESTDIR}${PREFIX}/bin
+	install --mode 0755 ${EXECUTABLE} ${DESTDIR}${PREFIX}/bin/${EXECUTABLE}
+
+	install --directory ${DESTDIR}${PREFIX}/share/licenses/${EXECUTABLE}
+	install --mode 0644 LICENSE ${DESTDIR}${PREFIX}/share/licenses/${EXECUTABLE}/LICENSE
+
+# UNINSTALL
+# ==============================================================================
+PHONY+=uninstall
+uninstall:
+	-rm --force --recursive \
+		${DESTDIR}/etc/bash_completion.d/${EXECUTABLE} \
+		${DESTDIR}${PREFIX}/bin/${EXECUTABLE} \
+		${DESTDIR}${PREFIX}/share/licenses/${EXECUTABLE}
+
+# BUILD CONTAINER IMAGE
 # ==============================================================================
 PHONY+=container-image/build
 container-image/build:
 	${CONTAINER_RUNTIME} build \
-		--build-arg GONOPROXY=${GOPROXY} \
-		--build-arg GONOSUMDB=${GONOSUMDB} \
-		--build-arg GOPRIVATE=${GOPRIVATE} \
-		--build-arg GOPROXY=${GOPROXY} \
 		--build-arg VERSION=${VERSION} \
-		--file ./Dockerfile \
+		--file Dockerfile \
 		--no-cache \
-		--tag ${DRONEEMAIL_IMAGE_UNQUALIFIED} \
-		--tag ${DRONEEMAIL_IMAGE_FULLY_QUALIFIED} \
+		--pull \
+		--tag ${DCMERGE_IMAGE_FULLY_QUALIFIED} \
+		--tag ${DCMERGE_IMAGE_UNQUALIFIED} \
 		.
 
+# DELETE CONTAINER IMAGE
+# ==============================================================================
+PHONY:=container-image/delete
+container-image/delete:
+	- ${CONTAINER_RUNTIME} image rm ${DCMERGE_IMAGE_FULLY_QUALIFIED}
+
+# PUSH CONTAINER IMAGE
+# ==============================================================================
 PHONY+=container-image/push
-container-image/push: container-image/build
-	${CONTAINER_RUNTIME} push ${DRONEEMAIL_IMAGE_FULLY_QUALIFIED}
+container-image/push:
+	echo ${DCMERGE_IMAGE_REGISTRY_PASSWORD} | ${CONTAINER_RUNTIME} login ${DCMERGE_IMAGE_REGISTRY_NAME} --username ${DCMERGE_IMAGE_REGISTRY_USER} --password-stdin
+	${CONTAINER_RUNTIME} push ${DCMERGE_IMAGE_FULLY_QUALIFIED}
 
 # PHONY
 # ==============================================================================
