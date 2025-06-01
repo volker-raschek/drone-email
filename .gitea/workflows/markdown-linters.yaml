@@ -1,20 +1,18 @@
-name: Markdown linter
+name: 'Lint Markdown files'
 
 on:
   pull_request:
     types: [ "opened", "reopened", "synchronize" ]
   push:
-    branches: [ '**' ]
-    tags-ignore: [ '**' ]
-  workflow_dispatch: {}
+    branches: [ '*' ]
+    tags-ignore: [ '*' ]
 
 jobs:
   markdown-lint:
-    container:
-      image: git.cryptic.systems/volker.raschek/markdownlint:0.45.0
     runs-on:
     - ubuntu-latest
     steps:
     - uses: actions/checkout@v4.2.2
-    - name: Lint Markdown files
-      run: markdownlint --config .markdownlint.yaml .
+    - uses: DavidAnson/markdownlint-cli2-action@v19.1.0
+      with:
+        globs: '**/*.md'
