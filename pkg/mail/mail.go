@@ -110,7 +110,7 @@ func (p *Plugin) sendMail(recipient string, r io.Reader) error {
 	// log.Printf("START_TLS: %v", p.smtpSettings.StartTLS)
 	// log.Printf("INSECURE: %v", p.smtpSettings.TLSInsecureSkipVerify)
 
-	address := fmt.Sprintf("%s:%d", p.smtpSettings.Host, p.smtpSettings.Port)
+	address := fmt.Sprintf("%v:%v", p.smtpSettings.Host, p.smtpSettings.Port)
 	tcpConn, err := net.Dial("tcp", address)
 	if err != nil {
 		return fmt.Errorf("failed to dial a connection to %s: %w", address, err)
