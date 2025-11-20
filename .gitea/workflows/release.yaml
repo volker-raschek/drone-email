@@ -49,5 +49,5 @@ jobs:
           --dest-username ${{ secrets.DOCKER_IO_USERNAME }} \
           --src-password ${{ secrets.GIT_CRYPTIC_SYSTEMS_PACKAGE_REGISTRY_TOKEN }} \
           --src-username volker.raschek \
-            docker://git.cryptic.systems/volker.raschek/dcmerge:${TAG} \
+            docker://git.cryptic.systems/volker.raschek/drone-email:${TAG} \
             docker://docker.io/volkerraschek/drone-email:${TAG}
